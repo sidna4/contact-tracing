@@ -19,7 +19,7 @@ public with sharing class CTLocationController {
      */
     public static List<Location__c> searchLocations(String searchTerm){
     // appending the wild card
-        searchTerm = searchTerm + '%'; /* */
+        searchTerm = searchTerm + '%';
         return [SELECT Id, Name, Address__c, Pincode__c, Red_Score__c, Status_Update_Date__c, Status__c
                 FROM Location__c
                 WHERE Name LIKE :searchTerm
