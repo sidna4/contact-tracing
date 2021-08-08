@@ -35,32 +35,36 @@ public with sharing class CTPeopleTracingController {
                                                         OR Person_2__c IN :personIds
                                                     WITH SECURITY_ENFORCED];
 
-        if(existingRecords != null && existingRecords.size() > 0){
-            for (People_Tracing__c trace : existingRecords) {
-                if(! mapOfExistingRecords.containsKey(trace.Person_1__c)){
-                    mapOfExistingRecords.put(trace.Person_1__c, new Set<Id>());
-                }
-                mapOfExistingRecords.get(trace.Person_1__c).add(trace.Person_2__c);
-
-                // build map for person 2
-                if(! mapOfExistingRecords.containsKey(trace.Person_2__c)){
-                    mapOfExistingRecords.put(trace.Person_2__c, new Set<Id>());
-                }
-                mapOfExistingRecords.get(trace.Person_2__c).add(trace.Person_1__c);
+        /* Return early to reduce complexity by eliminating a level of nesting */                                        
+        if(!((existingRecords != null) && (existingRecords.size() > 0))){
+            return duplicates;
+        }
+        
+        for (People_Tracing__c trace : existingRecords) {
+            if(! mapOfExistingRecords.containsKey(trace.Person_1__c)){
+                mapOfExistingRecords.put(trace.Person_1__c, new Set<Id>());
             }
+            mapOfExistingRecords.get(trace.Person_1__c).add(trace.Person_2__c);
 
-            // loop over existing records to find duplicates
-            for (People_Tracing__c trace : newPeopleTraces) {
-                //checkfor duplicates in map
-                if(
-                    (mapOfExistingRecords.containsKey(trace.Person_1__c) && mapOfExistingRecords.get(trace.Person_1__c).contains(trace.Person_2__c)) 
-                    ||
-                    (mapOfExistingRecords.containsKey(trace.Person_2__c) && mapOfExistingRecords.get(trace.Person_2__c).contains(trace.Person_1__c))
-                ){
-                    duplicates.add(trace);
-                }
+            // build map for person 2
+            if(! mapOfExistingRecords.containsKey(trace.Person_2__c)){
+                mapOfExistingRecords.put(trace.Person_2__c, new Set<Id>());
+            }
+            mapOfExistingRecords.get(trace.Person_2__c).add(trace.Person_1__c);
+        }
+
+        // loop over existing records to find duplicates
+        for (People_Tracing__c trace : newPeopleTraces) {
+            //checkfor duplicates in map
+            if(
+                (mapOfExistingRecords.containsKey(trace.Person_1__c) && mapOfExistingRecords.get(trace.Person_1__c).contains(trace.Person_2__c)) 
+                ||
+                (mapOfExistingRecords.containsKey(trace.Person_2__c) && mapOfExistingRecords.get(trace.Person_2__c).contains(trace.Person_1__c))
+            ){
+                duplicates.add(trace);
             }
         }
+        
         return duplicates;
     }
 }
